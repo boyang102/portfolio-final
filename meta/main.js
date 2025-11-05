@@ -88,6 +88,38 @@ function renderCommitInfo(data, commits) {
     .text("Figure 1: Summary statistics of this codebase");
 }
 
+// ---------- Step 3: Tooltip functions ----------
+function renderTooltipContent(commit) {
+  const link = document.getElementById("commit-link");
+  const date = document.getElementById("commit-date");
+  const time = document.getElementById("commit-time");
+  const author = document.getElementById("commit-author");
+  const lines = document.getElementById("commit-lines");
+
+  if (!commit) return;
+
+  link.href = commit.url;
+  link.textContent = commit.id;
+  date.textContent = commit.datetime?.toLocaleDateString("en", { dateStyle: "full" });
+  time.textContent = commit.datetime?.toLocaleTimeString("en", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  author.textContent = commit.author ?? "Unknown";
+  lines.textContent = commit.totalLines ?? "—";
+}
+
+function updateTooltipVisibility(isVisible) {
+  const tooltip = document.getElementById("commit-tooltip");
+  tooltip.hidden = !isVisible;
+}
+
+function updateTooltipPosition(event) {
+  const tooltip = document.getElementById("commit-tooltip");
+  tooltip.style.left = `${event.clientX + 12}px`;
+  tooltip.style.top = `${event.clientY + 12}px`;
+}
+
 // ---------- Step 2: 可视化 Commits 时间散点图 ----------
 function renderScatterPlot(data, commits) {
   const width = 1000;
@@ -107,13 +139,8 @@ function renderScatterPlot(data, commits) {
     .select("#chart")
     .append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .style("overflow", "visible")
-    .style("border", "1px solid #eee"); // 可选：调试时显示边框
+    .style("overflow", "visible");
 
-  // 检查数据范围
-  console.log("📅 Date range:", d3.extent(commits, (d) => d.datetime));
-
-  // 比例尺
   const xScale = d3
     .scaleTime()
     .domain(d3.extent(commits, (d) => d.datetime))
@@ -125,14 +152,14 @@ function renderScatterPlot(data, commits) {
     .domain([0, 24])
     .range([usableArea.bottom, usableArea.top]);
 
-  // 网格线
-  const gridlines = svg
+  // 添加网格线
+  svg
     .append("g")
     .attr("class", "gridlines")
     .attr("transform", `translate(${usableArea.left}, 0)`)
     .call(d3.axisLeft(yScale).tickFormat("").tickSize(-usableArea.width));
 
-  // 散点
+  // 绘制散点 + Tooltip 交互
   const dots = svg.append("g").attr("class", "dots");
 
   dots
@@ -146,7 +173,18 @@ function renderScatterPlot(data, commits) {
       const hour = d.hourFrac;
       return hour >= 6 && hour < 18 ? "#ffb347" : "#4682b4"; // 白天橙色，夜晚蓝色
     })
-    .attr("opacity", 0.8);
+    .attr("opacity", 0.8)
+    .on("mouseenter", (event, commit) => {
+      renderTooltipContent(commit);
+      updateTooltipVisibility(true);
+      updateTooltipPosition(event);
+    })
+    .on("mousemove", (event) => {
+      updateTooltipPosition(event);
+    })
+    .on("mouseleave", () => {
+      updateTooltipVisibility(false);
+    });
 
   // 坐标轴
   const xAxis = d3.axisBottom(xScale);

@@ -1,7 +1,7 @@
 /* ========== Step 4: Dark Mode Support & Color Variables ========== */
 html {
-  color-scheme: light dark;                     /* 自动适配系统主题 */
-  --color-accent: oklch(65% 50% 0);             /* 主题强调色 */
+  color-scheme: light dark;
+  --color-accent: oklch(65% 50% 0);
   accent-color: var(--color-accent);
   background-color: canvas;
   color: canvastext;
@@ -45,7 +45,7 @@ nav a.current {
   font-weight: bold;
 }
 
-/* ========== Dark Mode Switcher (top right corner) ========== */
+/* ========== Dark Mode Switcher ========== */
 .color-scheme {
   position: absolute;
   top: 1rem;
@@ -74,7 +74,7 @@ img {
   margin-top: 1em;
 }
 
-/* ========== Contact Form (Grid Layout) ========== */
+/* ========== Contact Form ========== */
 form {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -110,14 +110,13 @@ button {
 }
 
 .projects article {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
   border: 1px solid var(--border-color);
   border-radius: 0.5em;
   padding: 1em;
   background: color-mix(in oklch, canvas, var(--color-accent) 4%);
-  gap: 1em;
 }
 
 .projects h2 {
@@ -171,14 +170,6 @@ h3 {
   margin-block: 2em;
 }
 
-#projects-pie-plot {
-  max-width: 20em;
-  margin-inline: auto;
-  display: block;
-  overflow: visible;
-}
-
-/* Legend grid */
 .legend {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
@@ -189,9 +180,9 @@ h3 {
   background: color-mix(in oklch, canvas, var(--color-accent) 4%);
   list-style: none;
   margin: 0;
+  box-shadow: 0 0 0 1px color-mix(in oklch, canvastext, transparent 80%) inset;
 }
 
-/* Each legend item */
 .legend li {
   display: flex;
   align-items: center;
@@ -199,7 +190,6 @@ h3 {
   font-size: 0.9em;
 }
 
-/* Swatch color dot */
 .legend .swatch {
   width: 1em;
   height: 1em;
@@ -235,38 +225,7 @@ h3 {
   fill: var(--color);
 }
 
-/* ===== Projects card layout fix ===== */
-.projects article {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75em;            /* 让标题、图、描述、年份有间距 */
-}
-
-.project-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;            /* 描述与年份间距 */
-}
-
-.project-desc {
-  margin: 0;              /* 避免默认 margin 挤压 */
-}
-
-.project-year {
-  margin: 0;
-  color: oklch(55% 0.03 250);
-  font-family: Baskerville, "Times New Roman", serif;
-  font-variant-numeric: oldstyle-nums;
-  font-size: 0.95em;
-}
-
-/* 可选：让 legend 看起来更像卡片（你截图里的效果） */
-.legend {
-  box-shadow: 0 0 0 1px color-mix(in oklch, canvastext, transparent 80%) inset;
-}
-
-
-/* meta
+/* ========== meta section ========== */
 /* ---------- Summary Card Styles ---------- */
 .summary-card {
   background-color: #fff;
@@ -316,4 +275,54 @@ h3 {
   font-size: 0.9rem;
   color: #555;
   font-style: italic;
+}
+
+/* ========== Step 3: Tooltip ========== */
+/* ---------- Tooltip layout ---------- */
+dl.info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  padding: 1rem 1.2rem;
+  backdrop-filter: blur(4px);
+  font-size: 0.9rem;
+  transition-duration: 300ms;
+  transition-property: opacity, visibility;
+  color: #000;
+  position: fixed;
+  top: 1em;
+  left: 1em;
+  z-index: 999;
+  pointer-events: none;
+}
+
+dl.info[hidden] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+dt {
+  font-weight: 600;
+  color: #444;
+  margin: 0;
+}
+
+dd {
+  margin: 0;
+}
+
+/* ---------- Circle hover animation ---------- */
+circle {
+  transition: transform 0.2s ease, r 0.2s ease, stroke 0.2s ease;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+circle:hover {
+  transform: scale(1.5);
+  stroke: #000;
+  stroke-width: 1px;
 }
