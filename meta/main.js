@@ -1,7 +1,7 @@
 // ---------- 引入 D3 ----------
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
 
-// ---------- Step 1.1: 读取 CSV 并进行类型转换 ----------
+// ---------- Step 1.1: 读取 CSV ----------
 async function loadData() {
   const data = await d3.csv("loc.csv", (row) => ({
     ...row,
@@ -24,7 +24,7 @@ function processCommits(data) {
 
       const ret = {
         id: commit,
-        url: "https://github.com/YOUR_USERNAME/YOUR_REPO/commit/" + commit, // ← 改成你的仓库链接
+        url: "https://github.com/YOUR_USERNAME/YOUR_REPO/commit/" + commit, // 改成你的仓库路径
         author,
         date,
         time,
@@ -34,7 +34,6 @@ function processCommits(data) {
         totalLines: lines.length,
       };
 
-      // 隐藏原始 lines（可访问，不打印）
       Object.defineProperty(ret, "lines", {
         value: lines,
         enumerable: false,
@@ -85,10 +84,10 @@ function renderCommitInfo(data, commits) {
   d3.select("#stats")
     .append("figcaption")
     .attr("class", "figure-caption")
-    .text("Figure 1: Summary statistics of this codebase");
+    .text("Figure 1 – Summary statistics of this codebase");
 }
 
-// ---------- Step 3: Tooltip functions ----------
+// ---------- Step 3: Tooltip ----------
 function renderTooltipContent(commit) {
   const link = document.getElementById("commit-link");
   const date = document.getElementById("commit-date");
@@ -97,7 +96,6 @@ function renderTooltipContent(commit) {
   const lines = document.getElementById("commit-lines");
 
   if (!commit) return;
-
   link.href = commit.url;
   link.textContent = commit.id;
   date.textContent = commit.datetime?.toLocaleDateString("en", { dateStyle: "full" });
@@ -120,7 +118,7 @@ function updateTooltipPosition(event) {
   tooltip.style.top = `${event.clientY + 12}px`;
 }
 
-// ---------- Step 2: 可视化 Commits 时间散点图 ----------
+// ---------- Step 4: Scatterplot + Dot Size ----------
 function renderScatterPlot(data, commits) {
   const width = 1000;
   const height = 600;
@@ -141,48 +139,50 @@ function renderScatterPlot(data, commits) {
     .attr("viewBox", `0 0 ${width} ${height}`)
     .style("overflow", "visible");
 
+  // ========== Step 4.1: 定义半径比例尺 ==========
+  const [minLines, maxLines] = d3.extent(commits, (d) => d.totalLines);
+  const rScale = d3.scaleSqrt().domain([minLines, maxLines]).range([2, 30]);
+
+  // ========== Step 4.3: 按行数降序排序，避免遮挡 ==========
+  const sortedCommits = d3.sort(commits, (d) => -d.totalLines);
+
+  // 比例尺
   const xScale = d3
     .scaleTime()
     .domain(d3.extent(commits, (d) => d.datetime))
     .range([usableArea.left, usableArea.right])
     .nice();
 
-  const yScale = d3
-    .scaleLinear()
-    .domain([0, 24])
-    .range([usableArea.bottom, usableArea.top]);
+  const yScale = d3.scaleLinear().domain([0, 24]).range([usableArea.bottom, usableArea.top]);
 
-  // 添加网格线
+  // 网格线
   svg
     .append("g")
     .attr("class", "gridlines")
-    .attr("transform", `translate(${usableArea.left}, 0)`)
+    .attr("transform", `translate(${usableArea.left},0)`)
     .call(d3.axisLeft(yScale).tickFormat("").tickSize(-usableArea.width));
 
-  // 绘制散点 + Tooltip 交互
+  // 绘制散点
   const dots = svg.append("g").attr("class", "dots");
 
   dots
     .selectAll("circle")
-    .data(commits)
+    .data(sortedCommits)
     .join("circle")
     .attr("cx", (d) => xScale(d.datetime))
     .attr("cy", (d) => yScale(d.hourFrac))
-    .attr("r", 5)
-    .attr("fill", (d) => {
-      const hour = d.hourFrac;
-      return hour >= 6 && hour < 18 ? "#ffb347" : "#4682b4"; // 白天橙色，夜晚蓝色
-    })
-    .attr("opacity", 0.8)
+    .attr("r", (d) => rScale(d.totalLines))
+    .attr("fill", (d) => (d.hourFrac >= 6 && d.hourFrac < 18 ? "#ffb347" : "#4682b4"))
+    .style("fill-opacity", 0.7)
     .on("mouseenter", (event, commit) => {
+      d3.select(event.currentTarget).style("fill-opacity", 1);
       renderTooltipContent(commit);
       updateTooltipVisibility(true);
       updateTooltipPosition(event);
     })
-    .on("mousemove", (event) => {
-      updateTooltipPosition(event);
-    })
-    .on("mouseleave", () => {
+    .on("mousemove", (event) => updateTooltipPosition(event))
+    .on("mouseleave", (event) => {
+      d3.select(event.currentTarget).style("fill-opacity", 0.7);
       updateTooltipVisibility(false);
     });
 
@@ -192,15 +192,8 @@ function renderScatterPlot(data, commits) {
     .axisLeft(yScale)
     .tickFormat((d) => String(d % 24).padStart(2, "0") + ":00");
 
-  svg
-    .append("g")
-    .attr("transform", `translate(0, ${usableArea.bottom})`)
-    .call(xAxis);
-
-  svg
-    .append("g")
-    .attr("transform", `translate(${usableArea.left}, 0)`)
-    .call(yAxis);
+  svg.append("g").attr("transform", `translate(0,${usableArea.bottom})`).call(xAxis);
+  svg.append("g").attr("transform", `translate(${usableArea.left},0)`).call(yAxis);
 
   // 轴标题
   svg
@@ -223,10 +216,6 @@ function renderScatterPlot(data, commits) {
 
 // ---------- 主程序执行 ----------
 const data = await loadData();
-console.log("✅ Loaded data sample:", data.slice(0, 3));
-
 const commits = processCommits(data);
-console.log("✅ Commits processed:", commits.slice(0, 3));
-
 renderCommitInfo(data, commits);
 renderScatterPlot(data, commits);
