@@ -47,40 +47,56 @@ function processCommits(data) {
 
 // ---------- Step 1.3 显示统计信息 ----------
 function renderCommitInfo(data, commits) {
-  const dl = d3.select("#stats").append("dl").attr("class", "stats");
-
-  // 总行数
-  dl.append("dt").html('Total <abbr title="Lines of code">LOC</abbr>');
-  dl.append("dd").text(data.length);
-
-  // 总 commits
-  dl.append("dt").text("Total commits");
-  dl.append("dd").text(commits.length);
-
-  // 文件数（去重）
-  const numFiles = d3.group(data, (d) => d.file).size;
-  dl.append("dt").text("Number of files");
-  dl.append("dd").text(numFiles);
-
-  // 最大 depth 和平均 depth
-  const maxDepth = d3.max(data, (d) => d.depth);
-  const avgDepth = d3.mean(data, (d) => d.depth);
-  dl.append("dt").text("Max depth");
-  dl.append("dd").text(maxDepth);
-  dl.append("dt").text("Average depth");
-  dl.append("dd").text(avgDepth.toFixed(2));
-
-  // 平均行长（字符数）
-  const avgLineLength = d3.mean(data, (d) => d.length);
-  dl.append("dt").text("Average line length");
-  dl.append("dd").text(avgLineLength.toFixed(1));
-}
-
-// ---------- 主程序执行 ----------
-const data = await loadData();
-console.log("✅ Loaded data sample:", data.slice(0, 3));
-
-const commits = processCommits(data);
-console.log("✅ Commits processed:", commits.slice(0, 3));
-
-renderCommitInfo(data, commits);
+    // === 计算汇总指标 ===
+    const totalLOC = data.length;
+    const totalCommits = commits.length;
+    const numFiles = d3.group(data, (d) => d.file).size;
+    const maxDepth = d3.max(data, (d) => d.depth);
+    const longestLine = d3.max(data, (d) => d.length);
+    const maxLines = d3.max(data, (d) => d.line);
+  
+    // === 创建 Summary 卡片容器 ===
+    const container = d3.select("#stats").append("div").attr("class", "summary-card");
+  
+    container.append("h2").text("Summary");
+  
+    const grid = container.append("div").attr("class", "summary-grid");
+  
+    const stats = [
+      { label: "COMMITS", value: totalCommits },
+      { label: "FILES", value: numFiles },
+      { label: "TOTAL LOC", value: totalLOC },
+      { label: "MAX DEPTH", value: maxDepth },
+      { label: "LONGEST LINE", value: longestLine },
+      { label: "MAX LINES", value: maxLines },
+    ];
+  
+    // === 使用 D3 渲染每个指标 ===
+    grid
+      .selectAll("div.stat")
+      .data(stats)
+      .enter()
+      .append("div")
+      .attr("class", "stat")
+      .html(
+        (d) => `
+          <div class="stat-label">${d.label}</div>
+          <div class="stat-value">${d.value ?? "—"}</div>
+        `
+      );
+  
+    // （可选）添加图注
+    d3.select("#stats")
+      .append("figcaption")
+      .attr("class", "figure-caption")
+      .text("Figure 1: Summary statistics of this codebase");
+  }
+  
+  // ---------- 主程序执行 ----------
+  const data = await loadData();
+  console.log("✅ Loaded data sample:", data.slice(0, 3));
+  
+  const commits = processCommits(data);
+  console.log("✅ Commits processed:", commits.slice(0, 3));
+  
+  renderCommitInfo(data, commits);
