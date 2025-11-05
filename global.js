@@ -11,6 +11,7 @@ let pages = [
   { url: "projects/index.html", title: "Projects" },
   { url: "contact/index.html", title: "Contact" },
   { url: "resume/index.html", title: "Resume" },
+  { url: "meta/index.html", title: "Meta" }, // ✅ 新增 Meta 页面
   { url: "https://github.com/boyang102", title: "GitHub" },
 ];
 
@@ -101,7 +102,6 @@ export async function fetchJSON(url) {
   }
 }
 
-// ---------- ✅ Step 1.4: Render Projects ----------
 // ---------- Step 1.4: Render Projects ----------
 export function renderProjects(projects, containerElement, headingLevel = "h2") {
   if (!containerElement || !(containerElement instanceof HTMLElement)) return;
