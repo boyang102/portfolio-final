@@ -264,3 +264,56 @@ h3 {
 .legend {
   box-shadow: 0 0 0 1px color-mix(in oklch, canvastext, transparent 80%) inset;
 }
+
+
+/* meta
+/* ---------- Summary Card Styles ---------- */
+.summary-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  margin-top: 2rem;
+  max-width: 800px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1.2rem;
+  text-align: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #000;
+}
+
+.figure-caption {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: #555;
+  font-style: italic;
+}
