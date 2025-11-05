@@ -1,6 +1,6 @@
 // projects.js
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-import { renderProjects } from "../global_v2.js";
+import { renderProjects } from "../global.js";
 
 async function loadProjects() {
   const res = await fetch("../lib/projects.json");
