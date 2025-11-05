@@ -17,11 +17,13 @@ let pages = [
 let nav = document.createElement("nav");
 document.body.prepend(nav);
 
+// ---------- 自动识别当前仓库名 ----------
+const repo = window.location.pathname.split("/")[1] || "";
 const BASE_PATH =
-  location.hostname === "localhost" || location.hostname === "127.0.0.1"
+  location.hostname.includes("localhost") || location.hostname.includes("127.0.0.1")
     ? "/"
-    : "/portfolio2/";
-    
+    : `/${repo}/`;
+
 for (let p of pages) {
   let url = p.url;
   let title = p.title;
