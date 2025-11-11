@@ -1,10 +1,11 @@
 [
-    {
-      "title": "Amazon Shipment Optimization Dashboard",
-      "year": "2025",
-      "image": "https://vis-society.github.io/labs/2/images/empty.svg",
-      "description": "Built a BI dashboard in QuickSight analyzing item consolidation and shipment KPIs."
-    },
+  {
+    "title": "🚴‍♀️ Bikewatching: Boston Bluebike Traffic Visualization",
+    "year": "2025",
+    "image": "../images/bikewatching.png",
+    "description": "An interactive Mapbox + D3 visualization exploring Boston’s bike traffic flow and volume by time of day.",
+    "url": "https://boyang102.github.io/lab7/"
+  },
     {
       "title": "Predictive Mental Health Analysis",
       "year": "2024",

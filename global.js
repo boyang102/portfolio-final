@@ -102,7 +102,6 @@ export async function fetchJSON(url) {
   }
 }
 
-// ---------- Step 1.4: Render Projects ----------
 export function renderProjects(projects, containerElement, headingLevel = "h2") {
   if (!containerElement || !(containerElement instanceof HTMLElement)) return;
 
@@ -110,16 +109,34 @@ export function renderProjects(projects, containerElement, headingLevel = "h2") 
 
   for (const project of projects) {
     const article = document.createElement("article");
+    const hasUrl = !!project.url;
+
+    // 如果项目有 URL，就包一层 <a>，点击能打开新标签页
+    const linkStart = hasUrl ? `<a href="${project.url}" target="_blank" class="project-link">` : "";
+    const linkEnd = hasUrl ? "</a>" : "";
+
     article.innerHTML = `
-      <${headingLevel} class="project-title">${project.title ?? "Untitled Project"}</${headingLevel}>
-      <img src="${project.image || 'https://via.placeholder.com/300x200?text=No+Image'}"
-           alt="${project.title || "No title"}" />
+      ${linkStart}
+        <img 
+          src="${project.image || 'https://via.placeholder.com/300x200?text=No+Image'}" 
+          alt="${project.title || "No title"}" 
+          class="project-image"
+        />
+      ${linkEnd}
+
+      <${headingLevel} class="project-title">
+        ${linkStart}${project.title ?? "Untitled Project"}${linkEnd}
+      </${headingLevel}>
 
       <div class="project-meta">
         <p class="project-desc">${project.description ?? ""}</p>
         <p class="project-year">${project.year ? String(project.year) : ""}</p>
       </div>
     `;
+
+    // 鼠标提示手型
+    if (hasUrl) article.style.cursor = "pointer";
+
     containerElement.appendChild(article);
   }
 }
