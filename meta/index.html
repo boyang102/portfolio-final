@@ -13,17 +13,22 @@
   <div id="time-slider-container" style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
     <label for="commit-progress">Show commits until:</label>
     <input type="range" id="commit-progress" min="0" max="100" value="100" />
-    <time id="commit-time" style="margin-left:auto; font-weight:bold;"></time>
+    <!-- ⚠️ 改名，避免和 tooltip 里的 commit-time 冲突 -->
+    <time id="commit-slider-time" style="margin-left:auto; font-weight:bold;"></time>
   </div>
 
-  <!-- Summary 统计信息 -->
+  <!-- Summary，会由 D3 渲染 -->
   <div id="stats"></div>
 
-  <!-- 散点图部分 -->
+  <!-- 散点图 -->
   <h2>Commits by time of day</h2>
   <div id="chart"></div>
 
-  <!-- tooltip -->
+  <!-- 🔥 Step 2: File Unit Visualization -->
+  <h2>Files Over Time</h2>
+  <dl id="files"></dl>
+
+  <!-- tooltip for commit info -->
   <dl id="commit-tooltip" class="info tooltip" hidden>
     <dt>Commit</dt>
     <dd>
@@ -43,9 +48,9 @@
     <dd id="commit-lines"></dd>
   </dl>
 
-  <!-- 全局导航 -->
+  <!-- 如果你之前有 selection-count / language-breakdown，就保留你自己的版本 -->
+
   <script type="module" src="../global.js"></script>
-  <!-- 主逻辑 -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>

@@ -355,3 +355,50 @@ circle {
     r: 0;
   }
 }
+
+/* ---------- SCATTER PLOT TRANSITION ---------- */
+circle {
+  transition: all 200ms;
+}
+circle {
+  @starting-style {
+    r: 0;
+  }
+}
+
+/* ---------- STEP 2: File Unit Visualization ---------- */
+#files {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  margin-top: 20px;
+}
+
+#files > div {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+#files dt {
+  grid-column: 1;
+  font-weight: bold;
+}
+
+#files dd {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  align-content: start;
+  gap: 0.15em;
+  padding-top: 0.6em;
+  margin-left: 0;
+}
+
+/* Each LOC shown as a dot */
+.loc {
+  width: 0.5em;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: steelblue;
+}
