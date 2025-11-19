@@ -346,3 +346,12 @@ circle.selected {
   stroke: #000;
   stroke-width: 1px;
 }
+
+circle {
+  transition: all 200ms;
+}
+circle {
+  @starting-style {
+    r: 0;
+  }
+}
