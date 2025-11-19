@@ -3,30 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meta Analysis</title>
+  <title>Meta Analysis of My Codebase</title>
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
   <h1>Meta Analysis of My Codebase</h1>
 
-  <!-- 🔥 Step 1: Commit Time Slider -->
+  <!-- Step 1: 时间 slider -->
   <div id="time-slider-container" style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-    <label for="commit-progress">Show commits until:</label>
+    <label for="commit-progress">
+      <span>Show</span><br />
+      <span>commits until:</span>
+    </label>
     <input type="range" id="commit-progress" min="0" max="100" value="100" />
-    <!-- ⚠️ 改名，避免和 tooltip 里的 commit-time 冲突 -->
+    <!-- ⚠️ 这里的 id 专门给 slider 用，避免和 tooltip 的 commit-time 冲突 -->
     <time id="commit-slider-time" style="margin-left:auto; font-weight:bold;"></time>
   </div>
 
-  <!-- Summary，会由 D3 渲染 -->
+  <!-- Summary 会由 D3 渲染 -->
   <div id="stats"></div>
 
-  <!-- 散点图 -->
+  <!-- Step 3: Scrollytelling 布局 -->
   <h2>Commits by time of day</h2>
-  <div id="chart"></div>
 
-  <!-- 🔥 Step 2: File Unit Visualization -->
-  <h2>Files Over Time</h2>
-  <dl id="files"></dl>
+  <div id="scrolly-1">
+    <!-- 左边：文字叙事 -->
+    <div id="scatter-story"></div>
+
+    <!-- 右边：stick 的图 -->
+    <div id="scatter-plot">
+      <div id="chart"></div>
+    </div>
+  </div>
+
+  <!-- Step 2: 文件 unit visualization（放在 scrolly 下面） -->
+  <div id="scrolly-2">
+    <div id="files-story">
+      <div class="step">Here we see how files grow over time...</div>
+      <div class="step">Some files grow faster than others...</div>
+      <div class="step">CSS is the largest file...</div>
+    </div>
+  
+    <div id="files-plot">
+      <h2>Files Over Time</h2>
+      <dl id="files"></dl>
+    </div>
+  </div>
 
   <!-- tooltip for commit info -->
   <dl id="commit-tooltip" class="info tooltip" hidden>
@@ -48,9 +70,11 @@
     <dd id="commit-lines"></dd>
   </dl>
 
-  <!-- 如果你之前有 selection-count / language-breakdown，就保留你自己的版本 -->
+  <!-- 如果你在 Lab6 有 #selection-count / #language-breakdown 的元素，也可以继续放在这里 -->
 
+  <!-- 全局导航 -->
   <script type="module" src="../global.js"></script>
+  <!-- 本页逻辑 -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>

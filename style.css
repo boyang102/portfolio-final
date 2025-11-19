@@ -402,3 +402,66 @@ circle {
   border-radius: 50%;
   background: steelblue;
 }
+
+/* ───────────────────────────────
+   STEP 3 — SCROLLYTELLING LAYOUT
+─────────────────────────────── */
+
+#scrolly-1 {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* ───────────── Scrollytelling Section 2 ───────────── */
+
+#scrolly-2 {
+  position: relative;
+  display: flex;
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+#files-story {
+  flex: 1;
+  max-width: 45%;
+  position: relative;
+}
+
+#files-plot {
+  flex: 1;
+  position: sticky;
+  top: 10vh;
+  height: 80vh;
+  overflow-y: auto;
+}
+
+#files-story .step {
+  margin-bottom: 80vh;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+#scatter-story {
+  flex: 1;
+  max-width: 45%;
+}
+
+/* 右侧固定图 */
+#scatter-plot {
+  flex: 1;
+  position: sticky;
+  top: 10vh;
+  height: 80vh;
+}
+
+/* 每段 commit 文本占屏幕高度 */
+#scatter-story .step {
+  margin-bottom: 90vh;
+  padding-bottom: 2rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+

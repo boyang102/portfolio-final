@@ -1,7 +1,8 @@
-// ---------- 引入 D3 ----------
+// ---------- Imports ----------
+import scrollama from "https://cdn.jsdelivr.net/npm/scrollama@3.2.0/+esm";
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
 
-// ---------- 全局变量 ----------
+// ---------- 全局状态 ----------
 let commitProgress = 100;
 let timeScale;
 let commitMaxTime;
@@ -23,9 +24,9 @@ async function loadData() {
   return data;
 }
 
-// ---------- 处理 commit ----------
+// ---------- 处理 commits ----------
 function processCommits(data) {
-  return d3
+  const commits = d3
     .groups(data, (d) => d.commit)
     .map(([commit, lines]) => {
       const first = lines[0];
@@ -44,11 +45,14 @@ function processCommits(data) {
       });
       return ret;
     });
+
+  // 🕒 确保是按时间排序，方便 scrollytelling
+  commits.sort((a, b) => a.datetime - b.datetime);
+  return commits;
 }
 
-// ---------- Summary：支持任意 filtered 数据 ----------
+// ---------- Summary（支持 filtered 数据） ----------
 function renderCommitInfo(dataLines, commits) {
-  // 每次重建，避免叠加
   d3.select("#stats").html("");
 
   const totalLOC = dataLines.length;
@@ -129,33 +133,44 @@ function initTimeFilter(commits) {
     ])
     .range([0, 100]);
 
-  filteredCommits = commits;
   commitMaxTime = timeScale.invert(commitProgress);
+}
+
+// ---------- 根据 commitMaxTime 同步所有 view ----------
+function setMaxTimeAndUpdate(maxTime) {
+  commitMaxTime = maxTime;
+
+  // 1) 更新 slider 的值 & 文本
+  const slider = document.getElementById("commit-progress");
+  if (timeScale && slider) {
+    const pos = timeScale(maxTime);
+    slider.value = Math.round(pos);
+  }
+
+  const sliderTimeEl = document.getElementById("commit-slider-time");
+  if (sliderTimeEl) {
+    sliderTimeEl.textContent = maxTime.toLocaleString("en", {
+      dateStyle: "long",
+      timeStyle: "short",
+    });
+  }
+
+  // 2) 过滤 commits 和 lines
+  filteredCommits = commits.filter((d) => d.datetime <= maxTime);
+  const filteredLines = filteredCommits.flatMap((d) => d.lines);
+
+  // 3) 更新 Summary + Scatter + Unit Vis
+  renderCommitInfo(filteredLines, filteredCommits);
+  updateScatterPlot(data, filteredCommits);
+  updateFileDisplay(filteredCommits);
 }
 
 // ---------- Slider 事件 ----------
 function onTimeSliderChange() {
   const slider = document.getElementById("commit-progress");
   commitProgress = +slider.value;
-  commitMaxTime = timeScale.invert(commitProgress);
-
-  // 更新 slider 右侧的时间（注意这里用的是 commit-slider-time）
-  document.getElementById("commit-slider-time").textContent =
-    commitMaxTime.toLocaleString("en", {
-      dateStyle: "long",
-      timeStyle: "short",
-    });
-
-  // 过滤 commits
-  filteredCommits = commits.filter((d) => d.datetime <= commitMaxTime);
-
-  // 过滤对应的行
-  const filteredLines = filteredCommits.flatMap((d) => d.lines);
-
-  // 更新 summary + 散点图 + 文件可视化
-  renderCommitInfo(filteredLines, filteredCommits);
-  updateScatterPlot(data, filteredCommits);
-  updateFileDisplay(filteredCommits);
+  const maxTime = timeScale.invert(commitProgress);
+  setMaxTimeAndUpdate(maxTime);
 }
 
 // ---------- 散点图 + Brush ----------
@@ -182,15 +197,15 @@ function renderScatterPlot(data, commits) {
   const [minLines, maxLines] = d3.extent(commits, (d) => d.totalLines);
   const rScale = d3.scaleSqrt().domain([minLines, maxLines]).range([2, 30]);
 
-  const sortedCommits = d3.sort(commits, (d) => -d.totalLines);
-
-  // 全局 scale，方便 update 使用
   xScale = d3
     .scaleTime()
     .domain(d3.extent(commits, (d) => d.datetime))
     .range([usableArea.left, usableArea.right])
     .nice();
+
   yScale = d3.scaleLinear().domain([0, 24]).range([usableArea.bottom, usableArea.top]);
+
+  const sortedCommits = d3.sort(commits, (d) => -d.totalLines);
 
   // 网格线
   svg
@@ -203,7 +218,7 @@ function renderScatterPlot(data, commits) {
   const dots = svg.append("g").attr("class", "dots");
   dots
     .selectAll("circle")
-    .data(sortedCommits, (d) => d.id) // 🔑 用 id 作为 key，保证动画稳定
+    .data(sortedCommits, (d) => d.id)
     .join("circle")
     .attr("cx", (d) => xScale(d.datetime))
     .attr("cy", (d) => yScale(d.hourFrac))
@@ -242,7 +257,7 @@ function renderScatterPlot(data, commits) {
     .attr("class", "y-axis")
     .call(yAxis);
 
-  // 标题
+  // 轴标题
   svg
     .append("text")
     .attr("x", usableArea.left + usableArea.width / 2)
@@ -258,7 +273,7 @@ function renderScatterPlot(data, commits) {
     .attr("text-anchor", "middle")
     .text("Time of Day (HH:00)");
 
-  // Brush（保持你原来的逻辑）
+  // Brush（保留你原来的高亮逻辑）
   const brush = d3.brush().on("start brush end", brushed);
 
   svg.call(brush);
@@ -314,7 +329,7 @@ function renderScatterPlot(data, commits) {
   }
 }
 
-// ---------- 更新散点图（只改 x + 点） ----------
+// ---------- 更新散点图 ----------
 function updateScatterPlot(data, commits) {
   const svg = d3.select("#chart").select("svg");
   const dots = svg.select("g.dots");
@@ -393,26 +408,68 @@ function updateFileDisplay(filteredCommits) {
     .style("background", (d) => colors(d.type));
 }
 
+// ---------- Step 3: Scrollytelling ----------
+function initScrolly() {
+  // 生成 narrative 文本
+  d3
+    .select("#scatter-story")
+    .selectAll(".step")
+    .data(commits)
+    .join("div")
+    .attr("class", "step")
+    .html((d) => {
+      const fileCount = d3.rollups(
+        d.lines,
+        (v) => v.length,
+        (l) => l.file
+      ).length;
+      return `
+        <p><b>${d.datetime.toLocaleString("en", {
+          dateStyle: "long",
+          timeStyle: "short",
+        })}</b></p>
+        <p>I edited <b>${d.totalLines}</b> lines across ${fileCount} files.</p>
+        <p><a href="${d.url}" target="_blank">View commit</a></p>
+      `;
+    });
+
+  const scroller = scrollama();
+
+  scroller
+    .setup({
+      container: "#scrolly-1",
+      step: "#scatter-story .step",
+      offset: 0.6,
+    })
+    .onStepEnter(onStepEnter);
+
+  window.addEventListener("resize", scroller.resize);
+}
+
+function onStepEnter(response) {
+  const commit = response.element.__data__;
+  if (commit && commit.datetime) {
+    setMaxTimeAndUpdate(commit.datetime);
+  }
+}
+
 // ---------- 主程序 ----------
 const data = await loadData();
 const commits = processCommits(data);
 
-// 初始状态：用全部数据
-renderCommitInfo(data, commits);
+// 先画一次完整散点图
 renderScatterPlot(data, commits);
 
+// 初始化 timeScale
 initTimeFilter(commits);
 
-// 初始时用 full data 更新 slider 右侧时间 + 文件 unit vis
-document.getElementById("commit-slider-time").textContent =
-  commitMaxTime.toLocaleString("en", {
-    dateStyle: "long",
-    timeStyle: "short",
-  });
+// 用最大时间初始化所有视图（相当于“全部 commits”）
+setMaxTimeAndUpdate(commitMaxTime);
 
-updateFileDisplay(commits);
-
-// 绑定 slider 事件
+// 绑定 slider
 document
   .getElementById("commit-progress")
   .addEventListener("input", onTimeSliderChange);
+
+// 初始化 scrollytelling
+initScrolly();
